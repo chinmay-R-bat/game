@@ -158,8 +158,6 @@ export const operators = [
     note: "Wide-range field doctor, rapid targeted life support",
     sprite: ASSETS.operators.neeraj
   }
-    sprite: ASSETS.operators.medic
-  }
 ];
 
 export const briefings = [

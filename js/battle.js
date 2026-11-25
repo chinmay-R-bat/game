@@ -708,6 +708,8 @@ export class BattleEngine {
     let bestDist = Infinity;
 
     for (const enemy of this.activeEnemies) {
+      if (enemy.flying && unit.op.tile !== "high") continue;
+
       const dist = Math.hypot(enemy.x - opX, enemy.y - opY);
       if (dist <= maxDist) {
         if (unit.antiAir && enemy.flying) {
