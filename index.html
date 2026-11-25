@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Stars of Talos: The Aether Bridge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="scanlines">
+  <div id="app-root">
+    <!-- Top System Header Bar -->
+    <header id="top-nav" class="hud-header">
+      <div class="nav-left">
+        <span class="hud-tag">RHODES // ENDFIELD</span>
+        <span class="hud-title">STARS OF TALOS</span>
+      </div>
+      <div class="nav-center">
+        <!-- Bridge to Terra Beacon Indicator -->
+        <div class="beacon-strip" title="Bridge to Terra — Relay Beacons Status">
+          <span class="beacon-label">AETHER BRIDGE:</span>
+          <div class="beacon-nodes">
+            <span class="beacon-node" id="beacon-1" data-level="1">B-01</span>
+            <span class="beacon-line" id="bline-1"></span>
+            <span class="beacon-node" id="beacon-2" data-level="2">B-02</span>
+            <span class="beacon-line" id="bline-2"></span>
+            <span class="beacon-node" id="beacon-3" data-level="3">B-03</span>
+          </div>
+          <span class="beacon-status" id="beacon-status-text">OFFLINE</span>
+        </div>
+      </div>
+      <div class="nav-right">
+        <button id="btn-audio-toggle" class="btn-icon" aria-label="Toggle Sound" title="Toggle Sound">
+          <span id="audio-icon">🔊</span>
+        </button>
+        <button id="btn-reset-game" class="btn-tactical btn-small" title="Reset all progress">
+          RESET
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Screens Container -->
+    <main id="screen-container">
+      
+      <!-- SCREEN 1: STORY PROLOGUE -->
+      <section id="screen-story" class="screen active">
+        <canvas id="canvas-stars" class="bg-canvas"></canvas>
+        <div class="story-wrapper">
+          <div class="story-art-frame">
+            <img id="story-art-img" src="assets/story/terra_spaceship.png" alt="Story Illustration" class="story-img">
+            <div class="art-overlay-gradient"></div>
+            <div id="story-art-caption" class="art-caption">INITIALIZING DEEP SPACE TELEMETRY...</div>
+          </div>
+          
+          <div class="story-dialogue-box">
+            <div class="dialogue-header">
+              <span id="story-title" class="dialogue-title">Prologue: The Severed Sky</span>
+              <button id="btn-story-skip" class="btn-text">SKIP TO CALL ▶</button>
+            </div>
+            <div class="dialogue-body">
+              <p id="story-text" class="typewriter-text"></p>
+            </div>
+            <div class="dialogue-actions">
+              <span class="click-hint">Click box or press SPACE to continue</span>
+              <button id="btn-story-next" class="btn-tactical btn-primary">
+                NEXT ▶
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 2: INCOMING TRANSMISSION (WARFARIN) -->
+      <section id="screen-call" class="screen">
+        <div class="call-container">
+          <div id="call-incoming-alert" class="call-alert">
+            <div class="radar-pulse">
+              <div class="pulse-ring ring-1"></div>
+              <div class="pulse-ring ring-2"></div>
+              <div class="pulse-ring ring-3"></div>
+              <div class="comms-icon">📡</div>
+            </div>
+            <h2 class="alert-title">INCOMING QUANTUM TRANSMISSION</h2>
+            <div class="caller-id">CALLER: DR. WARFARIN [RHODES ISLAND]</div>
+            <button id="btn-accept-call" class="btn-tactical btn-call-accept">
+              ACCEPT TRANSMISSION
+            </button>
+          </div>
+
+          <div id="call-dialogue-panel" class="call-dialogue-panel hidden">
+            <div class="call-portrait-col">
+              <div class="avatar-frame">
+                <div class="avatar-circle">W</div>
+                <div class="avatar-scan"></div>
+              </div>
+              <span class="operator-title">WARFARIN</span>
+              <span class="operator-sub">Chief Medical Vanguard</span>
+              <div class="comm-signal-bars">
+                <span class="bar on"></span><span class="bar on"></span><span class="bar on"></span><span class="bar off"></span>
+              </div>
+            </div>
+            
+            <div class="call-message-col">
+              <div class="call-meta">COMMS CHANNEL 04 // TALOS-II EXPEDITIONARY FREQ</div>
+              <p id="call-text" class="call-typewriter"></p>
+              <div class="call-actions">
+                <button id="btn-call-next" class="btn-tactical btn-primary">NEXT ▶</button>
+                <button id="btn-call-teleport" class="btn-tactical btn-teleport-glow hidden">
+                  ⚡ TELEPORT TO FRONT LINE
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 3: TELEPORT TRANSITION -->
+      <section id="screen-teleport" class="screen">
+        <canvas id="canvas-warp" class="bg-canvas"></canvas>
+        <div class="warp-overlay">
+          <div class="warp-emitter">
+            <button id="btn-warp-engage" class="btn-warp-core">
+              <span class="warp-core-inner">ENGAGE TELEPORT</span>
+            </button>
+            <div class="warp-rings"></div>
+          </div>
+          <div class="warp-status-text">CALIBRATING QUANTUM TRANSLOCATION BEACON...</div>
+        </div>
+      </section>
+
+      <!-- SCREEN 4: LEVEL MAP HUB -->
+      <section id="screen-levels" class="screen">
+        <div class="levels-container">
+          <div class="hub-header">
+            <div class="hub-title-block">
+              <span class="hub-chapter">PROLOGUE // CHAPTER 01</span>
+              <h1 class="hub-heading">THE VALLEY CALLS</h1>
+            </div>
+            <div class="hub-desc">
+              Establish the forward foothold in the Jerna Valley and activate the three planetary relay beacons to anchor the Aether Bridge to Terra.
+            </div>
+          </div>
+
+          <!-- Arknights Style Tactical Node Flow -->
+          <div class="level-nodes-wrapper">
+            <div class="level-cards-grid">
+              
+              <!-- Level 1 Card -->
+              <div class="level-card" id="card-level-1" data-level="1">
+                <div class="card-status-badge" id="badge-lvl-1">AVAILABLE</div>
+                <div class="card-code">OPERATION 01</div>
+                <h3 class="card-name">Dense Forest</h3>
+                <div class="card-biome">Valley Jungle // Toxic Mist</div>
+                <p class="card-summary">Overgrown Jerna valley. Spores corrode armor and mist shrouds hostiles.</p>
+                <div class="card-hazard-tag">⚠️ Hazard: Spore Haze (-10% Ranged ATK)</div>
+                <div class="card-footer">
+                  <span class="diff-rating">DIFFICULTY: ★☆☆</span>
+                  <button class="btn-tactical btn-card-action" data-level="1">BRIEFING ▶</button>
+                </div>
+              </div>
+
+              <!-- Level 2 Card -->
+              <div class="level-card locked" id="card-level-2" data-level="2">
+                <div class="card-status-badge" id="badge-lvl-2">LOCKED 🔒</div>
+                <div class="card-code">OPERATION 02</div>
+                <h3 class="card-name">Abandoned Factory</h3>
+                <div class="card-biome">Old-Era Yard // Steel & Sparks</div>
+                <p class="card-summary">Ancient derelict shipyard defended by Aggeloi constructs. Reclaim the forge.</p>
+                <div class="card-hazard-tag">⚠️ Hazard: Conveyor Belts (+35% Enemy Speed)</div>
+                <div class="card-footer">
+                  <span class="diff-rating">DIFFICULTY: ★★☆</span>
+                  <button class="btn-tactical btn-card-action" data-level="2" disabled>LOCKED</button>
+                </div>
+              </div>
+
+              <!-- Level 3 Card -->
+              <div class="level-card locked" id="card-level-3" data-level="3">
+                <div class="card-status-badge" id="badge-lvl-3">LOCKED 🔒</div>
+                <div class="card-code">OPERATION 03</div>
+                <h3 class="card-name">Purple Crystal Planet</h3>
+                <div class="card-biome">Resonance Peak // Pure Originium</div>
+                <p class="card-summary">World humming with crystalline frequency. The titan awakes.</p>
+                <div class="card-hazard-tag">⚠️ Hazard: Crystal Surge (Tile Lockdowns)</div>
+                <div class="card-footer">
+                  <span class="diff-rating">DIFFICULTY: ★★★</span>
+                  <button class="btn-tactical btn-card-action" data-level="3" disabled>LOCKED</button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- All Cleared Prologue Banner -->
+          <div id="banner-prologue-complete" class="prologue-banner hidden">
+            <div class="banner-glow"></div>
+            <div class="banner-content">
+              <span class="banner-tag">ALL RELAY BEACONS OPERATIONAL</span>
+              <h2>PROLOGUE CHAPTER 1 COMPLETED</h2>
+              <p>The forward bridge to Terra is anchored. Review debriefing and enemy intelligence.</p>
+            </div>
+            <button id="btn-to-epilogue" class="btn-tactical btn-primary btn-large">
+              WHAT'S COMING ▶
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 5: BATTLE ENGINE -->
+      <section id="screen-battle" class="screen">
+        <div class="battle-ui-container">
+          
+          <!-- Top Battle HUD Bar -->
+          <div class="battle-top-hud">
+            <div class="hud-group-left">
+              <div class="hud-base-hp">
+                <span class="base-icon">🛡️</span>
+                <span class="base-label">LIFE POINT</span>
+                <span id="battle-hp-val" class="base-val">3 / 3</span>
+              </div>
+              <div class="hud-enemy-count">
+                <span class="enemy-icon">🎯</span>
+                <span class="enemy-label">ENEMY</span>
+                <span id="battle-enemy-val" class="enemy-val">0 / 19</span>
+              </div>
+              <div class="hud-stage-name">
+                <span id="battle-stage-code" class="stage-code">OP-01</span>
+                <span id="battle-stage-title" class="stage-title">Dense Forest</span>
+              </div>
+            </div>
+
+            <div class="hud-group-right">
+              <div class="hud-hazard-badge" id="battle-hazard-badge">
+                HAZARD: SPORE HAZE
+              </div>
+              <button id="btn-battle-speed" class="btn-tactical btn-speed" title="Toggle Speed 1x / 2x">1X</button>
+              <button id="btn-battle-pause" class="btn-tactical btn-pause" title="Pause / Resume">⏸</button>
+              <button id="btn-battle-abandon" class="btn-tactical btn-danger" title="Abandon Operation">RETREAT</button>
+            </div>
+          </div>
+
+          <!-- Main Interactive Canvas Grid -->
+          <div class="battle-canvas-wrapper" id="battle-canvas-wrapper">
+            <canvas id="canvas-battle"></canvas>
+
+            <!-- Operator Status Inspector Panel (Left, modeled after Lappland in reference) -->
+            <div id="operator-inspect-panel" class="operator-inspect-panel hidden">
+              <div class="inspect-header">
+                <span id="inspect-name" class="inspect-name">Lappland</span>
+                <span id="inspect-class" class="inspect-class">GUARD</span>
+              </div>
+              <div class="inspect-stats">
+                <div class="stat-row"><span>LV</span><strong>50</strong></div>
+                <div class="stat-row"><span>HP</span><strong id="inspect-hp">950 / 950</strong></div>
+                <div class="stat-row"><span>ATK</span><strong id="inspect-atk">160</strong></div>
+                <div class="stat-row"><span>BLOCK</span><strong id="inspect-block">2</strong></div>
+              </div>
+              <div class="inspect-action">
+                <button id="btn-inspect-retreat" class="btn-tactical btn-danger btn-small">
+                  RETREAT (+50% DP)
+                </button>
+              </div>
+            </div>
+
+            <!-- Directional Rhombus Overlay (Directly matching direction_select.jpeg reference) -->
+            <div id="direction-select-overlay" class="direction-select-overlay hidden">
+              <div class="rhombus-frame">
+                <button class="dir-btn dir-up" data-dir="up" title="Face Up">▲</button>
+                <button class="dir-btn dir-left" data-dir="left" title="Face Left">◀</button>
+                <button class="dir-btn dir-cancel" id="btn-dir-cancel" title="Cancel Deployment">✕<br><span>CANCEL</span></button>
+                <button class="dir-btn dir-right" data-dir="right" title="Face Right">▶</button>
+                <button class="dir-btn dir-down" data-dir="down" title="Face Down">▼</button>
+              </div>
+              <div class="dir-instruction">SELECT DEPLOYMENT DIRECTION</div>
+            </div>
+          </div>
+
+          <!-- Bottom Deployment Bar (Modeled after Arknights bottom operator bar) -->
+          <div class="battle-bottom-deck">
+            <div class="deck-dp-gauge">
+              <div class="dp-circle">
+                <span class="dp-tag">DP</span>
+                <span id="battle-dp-val" class="dp-number">10</span>
+              </div>
+              <div class="dp-bar-track">
+                <div id="battle-dp-progress" class="dp-bar-fill"></div>
+              </div>
+              <div class="deploy-limit-tag">
+                <span class="limit-label">OPERATORS</span>
+                <span id="battle-deploy-count" class="limit-val">0 / 4</span>
+              </div>
+            </div>
+
+            <div class="operator-cards-row" id="operator-cards-container">
+              <!-- Dynamically populated from operators data -->
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- SCREEN 6: PROLOGUE COMPLETE EPILOGUE -->
+      <section id="screen-epilogue" class="screen">
+        <div class="epilogue-container">
+          <div class="epilogue-card">
+            <span class="epilogue-chapter-tag">MISSION ACCOMPLISHED</span>
+            <h1 class="epilogue-title">PROLOGUE — CHAPTER 1 COMPLETE</h1>
+            <h2 class="epilogue-subtitle">The Valley Calls</h2>
+            
+            <div class="epilogue-dialogue-box">
+              <div class="avatar-circle">W</div>
+              <div class="epilogue-text-col">
+                <span class="comms-header">WARFARIN // SECURE ENCRYPTION COMM</span>
+                <p id="epilogue-text" class="typewriter-text"></p>
+              </div>
+            </div>
+
+            <div class="epilogue-actions">
+              <button id="btn-epilogue-next" class="btn-tactical btn-primary">NEXT ▶</button>
+              <button id="btn-to-teaser" class="btn-tactical btn-primary btn-large hidden">
+                WHAT'S COMING ▶
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 7: ENEMY TEASER ("THEY ARE COMING...") -->
+      <section id="screen-teaser" class="screen">
+        <div class="teaser-container">
+          <div class="teaser-header">
+            <span class="teaser-sub">INTEL TELEMETRY: NEXT FRONTIER</span>
+            <h1 class="teaser-heading">THEY ARE COMING…</h1>
+            <p class="teaser-intro">Distress pulses from deep space are disturbing colossal entities across the planetary bridge.</p>
+          </div>
+
+          <div class="teaser-grid" id="teaser-cards-container">
+            <!-- Populated from teaserEnemies in enemies.js -->
+          </div>
+
+          <div class="teaser-footer-card">
+            <div class="upcoming-tag">CHAPTER 2: PYRE-4 — COMING SOON</div>
+            <p>Vaelen vs. the Scourge. The expedition pushes deeper towards Terra's coordinates.</p>
+            <div class="teaser-actions">
+              <button id="btn-teaser-back-levels" class="btn-tactical">BACK TO LEVELS</button>
+              <button id="btn-teaser-restart" class="btn-tactical btn-danger">RESTART PROLOGUE</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Briefing Modal -->
+    <div id="modal-briefing" class="modal-overlay hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <span id="briefing-code" class="modal-code">OP-01</span>
+          <h2 id="briefing-title" class="modal-title">Dense Forest</h2>
+          <button id="btn-briefing-close" class="modal-close" aria-label="Close modal">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="briefing-desc-box">
+            <span class="sec-label">MISSION OBJECTIVE</span>
+            <p id="briefing-text" class="briefing-text"></p>
+          </div>
+          <div class="briefing-hazard-box">
+            <span class="sec-label">ENVIRONMENTAL HAZARD</span>
+            <p id="briefing-hazard" class="hazard-desc"></p>
+          </div>
+          <div class="briefing-enemies-box">
+            <span class="sec-label">DETECTED HOSTILES</span>
+            <div id="briefing-enemies-list" class="briefing-enemies-row"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="btn-briefing-cancel" class="btn-tactical">CANCEL</button>
+          <button id="btn-briefing-start" class="btn-tactical btn-primary btn-large">DEPLOY OPERATORS ▶</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Battle Victory / Defeat Modal -->
+    <div id="modal-battle-result" class="modal-overlay hidden">
+      <div class="modal-card result-card">
+        <div id="result-status-banner" class="result-banner victory">
+          <h1 id="result-title">OPERATION COMPLETED</h1>
+          <span id="result-subtitle">MISSION ACCOMPLISHED</span>
+        </div>
+        <div class="result-body">
+          <div class="result-stats-row">
+            <div class="result-stat"><span class="r-label">TARGETS ELIMINATED</span><strong id="res-kills">19 / 19</strong></div>
+            <div class="result-stat"><span class="r-label">LIFE POINTS REMAINING</span><strong id="res-hp">3 / 3</strong></div>
+            <div class="result-stat"><span class="r-label">RELAY BEACON</span><strong id="res-beacon">SYNCHRONIZED</strong></div>
+          </div>
+          <p id="result-summary-text" class="result-summary"></p>
+        </div>
+        <div class="modal-footer result-footer">
+          <button id="btn-result-retry" class="btn-tactical hidden">RETRY OPERATION</button>
+          <button id="btn-result-hub" class="btn-tactical btn-primary btn-large">RETURN TO HUB ▶</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mandatory Disclaimer Footer -->
+    <footer id="app-footer">
+      <span>Fan-made, non-commercial project inspired by Arknights / Arknights: Endfield. Not affiliated with Hypergryph/Gryphline.</span>
+    </footer>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
