@@ -62,6 +62,7 @@ export class BattleEngine {
     this.tileHeight = 72;
     this.gridOffsetX = 0;
     this.gridOffsetY = 0;
+    this.deployLimit = 6;
 
     // Preloaded image caches
     this.imageCache = {};
@@ -78,6 +79,12 @@ export class BattleEngine {
       ASSETS.operators.guard,
       ASSETS.operators.sniper,
       ASSETS.operators.medic,
+      ASSETS.operators.dracula,
+      ASSETS.operators.dragun,
+      ASSETS.operators.kira,
+      ASSETS.operators.neeraj,
+      ASSETS.operators.riko,
+      ASSETS.operators.satashi,
       ASSETS.enemies.slug,
       ASSETS.enemies.warrior,
       ASSETS.enemies.winged,
@@ -255,6 +262,11 @@ export class BattleEngine {
       this.callbacks.onSfx && this.callbacks.onSfx("alert");
       return;
     }
+    if (this.deployedUnits.length >= this.deployLimit) {
+      this.callbacks.onSfx && this.callbacks.onSfx("alert");
+      this.addFloatingText("SQUAD LIMIT REACHED", this.canvas.width / 4, 80, "#ff495c");
+      return;
+    }
 
     if (this.selectedOp && this.selectedOp.id === op.id) {
       this.selectedOp = null;
@@ -278,6 +290,35 @@ export class BattleEngine {
       card.classList.toggle("cannot-afford", !canAfford && !isDeployed);
       card.classList.toggle("selected", isSelected);
     });
+  }
+
+  renderOperatorDeck() {
+    this.cardsContainer.innerHTML = "";
+    const classBadgeMap = {
+      Vanguard: "VAN",
+      Guard: "GRD",
+      Defender: "DEF",
+      Sniper: "SNP",
+      Caster: "CAS",
+      Medic: "MED",
+      Specialist: "SPC"
+    };
+
+    operators.forEach(op => {
+      const card = document.createElement("div");
+      card.className = "op-card";
+      card.id = `deck-op-${op.id}`;
+      const badge = classBadgeMap[op.class] || "OP";
+      card.innerHTML = `
+        <span class="op-class-tag class-${op.class.toLowerCase()}">${badge}</span>
+        <img class="op-card-thumb" src="${op.sprite}" alt="${op.name}">
+        <span class="op-cost-badge">${op.cost}</span>
+        <span class="op-name-tag">${op.name}</span>
+      `;
+      card.addEventListener("click", () => this.selectOperatorForDeploy(op));
+      this.cardsContainer.appendChild(card);
+    });
+    this.updateCardAvailability();
   }
 
   handleCanvasClick(e) {
@@ -705,12 +746,26 @@ export class BattleEngine {
   }
 
   operatorAttack(unit, enemy) {
-    // Arknights Physical Formula: max(5% ATK, ATK - DEF)
-    const rawDamage = unit.atk - enemy.def;
-    const damage = Math.max(Math.floor(unit.atk * 0.05), rawDamage);
+    let damage = 0;
+    let textColor = "#ffffff";
+    let vfxColor = "#3ef0c0";
+
+    if (unit.isArts || unit.op.isArts) {
+      // Arts Damage: reduced by enemy RES %, ignores enemy DEF
+      const resFactor = Math.max(0.05, 1 - (enemy.res || 0) / 100);
+      damage = Math.max(Math.floor(unit.atk * 0.05), Math.floor(unit.atk * resFactor));
+      textColor = "#c26bff"; // Originium Violet
+      vfxColor = "#c26bff";
+    } else {
+      // Physical Damage: reduced by enemy DEF flat
+      const rawDamage = unit.atk - (enemy.def || 0);
+      damage = Math.max(Math.floor(unit.atk * 0.05), rawDamage);
+      textColor = "#ffffff";
+      vfxColor = "#3ef0c0";
+    }
 
     enemy.hp -= damage;
-    this.addFloatingText(`-${damage}`, enemy.x, enemy.y - 10, "#ffffff");
+    this.addFloatingText(`-${damage}`, enemy.x, enemy.y - 10, textColor);
 
     // Texas generates +1 DP on strikes!
     if (unit.dpPerAtk) {
@@ -724,11 +779,15 @@ export class BattleEngine {
       type: "slash",
       x: enemy.x,
       y: enemy.y,
-      color: "#3ef0c0",
+      color: vfxColor,
       life: 0.2
     });
 
-    this.callbacks.onSfx && this.callbacks.onSfx(unit.op.tile === "high" ? "shoot" : "slash");
+    if (unit.isArts || unit.op.isArts) {
+      this.callbacks.onSfx && this.callbacks.onSfx("warp");
+    } else {
+      this.callbacks.onSfx && this.callbacks.onSfx(unit.op.tile === "high" ? "shoot" : "slash");
+    }
   }
 
   operatorHeal(unit, target) {
@@ -753,8 +812,9 @@ export class BattleEngine {
   }
 
   enemyAttack(enemy, operator) {
-    // Enemy damage to operator
-    const damage = Math.max(Math.floor(enemy.atk * 0.1), enemy.atk);
+    // Enemy damage to operator, mitigated by operator armor (e.g. Defender Riko)
+    const rawDamage = enemy.atk - (operator.op.def || 0);
+    const damage = Math.max(Math.floor(enemy.atk * 0.08), rawDamage);
     operator.hp -= damage;
     
     const ox = this.gridOffsetX + operator.col * this.tileWidth + this.tileWidth / 2;
@@ -814,7 +874,7 @@ export class BattleEngine {
     this.enemyEl.textContent = `${this.defeatedEnemies} / ${this.totalEnemies}`;
     this.dpEl.textContent = Math.floor(this.dp);
     this.dpProgressEl.style.width = `${Math.min(100, (this.dp / this.maxDp) * 100)}%`;
-    this.deployCountEl.textContent = `${this.deployedUnits.length} / 4`;
+    this.deployCountEl.textContent = `${this.deployedUnits.length} / ${this.deployLimit}`;
   }
 
   endBattle(won) {

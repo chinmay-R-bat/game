@@ -5,7 +5,13 @@ export const ASSETS = {
     vanguard: "assets/operators/vanguard.png",
     guard: "assets/operators/guard.png",
     sniper: "assets/operators/sniper.png",
-    medic: "assets/operators/medic.png"
+    medic: "assets/operators/medic.png",
+    dracula: "assets/operators/dracula.png",
+    dragun: "assets/operators/dragun.png",
+    kira: "assets/operators/kira.png",
+    neeraj: "assets/operators/neeraj.png",
+    riko: "assets/operators/riko.png",
+    satashi: "assets/operators/satashi.png"
   },
   enemies: {
     slug: "assets/enemies/enemy_slug.png",
